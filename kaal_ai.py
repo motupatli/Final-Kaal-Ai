@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 
 # Page Config
-st.set_page_config(page_title="Bharat GPT- Desi GPT", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Kaal AI- Desi GPT", page_icon="🧠", layout="wide")
 
 # Inject futuristic background + custom font
 st.markdown("""
