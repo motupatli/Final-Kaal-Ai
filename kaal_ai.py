@@ -107,7 +107,7 @@ with st.sidebar:
                 st.markdown("---")
 
 # Main UI
-st.title("🤖 Kaal AI - Desi GPT with Futuristic Vibes")
+st.title("🤖 Bharat GPT - Desi GPT with Futuristic Vibes")
 st.markdown("🚀 Hinglish mein baat karne wala AI saathi – upgraded to sci-fi mode!")
 
 # Show Today’s Chat
