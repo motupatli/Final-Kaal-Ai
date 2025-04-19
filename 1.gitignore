@@ -1,10 +1,30 @@
-# Python stuff
+# Python bytecode files
 __pycache__/
 *.pyc
+*.pyo
 
 # Virtual environment
 venv/
+env/
 .venv/
+.env/
 
-# Streamlit secrets (never check these in!)
-.streamlit/secrets.toml
+# IDEs and text editors
+.vscode/
+.idea/
+
+# Python packages
+*.egg-info/
+
+# Distribution/packaging
+*.tar.gz
+*.zip
+*.whl
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Logs and temp files
+*.log
+*.bak
+*.swp
