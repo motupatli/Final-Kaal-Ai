@@ -9,7 +9,7 @@ import time
 # Page Config
 st.set_page_config(page_title="Kaal AI- Desi GPT", page_icon="🧠", layout="wide")
 
-# Inject futuristic background + custom font
+# Background + Font Styling
 st.markdown("""
     <style>
     .stApp {
@@ -35,9 +35,7 @@ st.markdown("""
         text-shadow: 0 0 8px #00ffe1;
     }
 
-    .block-container {
-        padding-top: 4rem;
-    }
+    .block-container { padding-top: 4rem; }
 
     .user-message {
         background-color: #3FE0D0;
@@ -72,14 +70,14 @@ st.markdown("""
 # Configure Gemini API Key
 genai.configure(api_key="AIzaSyD60S4qvkQM0cXVmYsZ1Slj5IrdoEpXtso")
 
-# Create Unique User ID for Session
+# Unique User ID
 if "user_id" not in st.session_state:
     st.session_state.user_id = str(uuid.uuid4())
 
 USER_ID = st.session_state.user_id
 HISTORY_FILE = f"chat_history_{USER_ID}.json"
 
-# Load Chat History
+# Load or Init Chat History
 if os.path.exists(HISTORY_FILE):
     with open(HISTORY_FILE, "r", encoding="utf-8") as f:
         try:
@@ -96,7 +94,7 @@ today_key = datetime.now().strftime("%Y-%m-%d")
 if today_key not in all_chats:
     all_chats[today_key] = []
 
-# Sidebar – Past Conversations
+# Sidebar - Past Conversations
 with st.sidebar:
     st.header("📅 Past Conversations")
     for date in sorted(all_chats.keys(), reverse=True):
@@ -110,7 +108,7 @@ with st.sidebar:
 st.title("🤖 Bharat GPT - Desi GPT with Futuristic Vibes")
 st.markdown("🚀 Hinglish mein baat karne wala AI saathi – upgraded to sci-fi mode!")
 
-# Show Today’s Chat
+# Chat History Display
 if all_chats[today_key]:
     st.subheader("📌 Today’s Chat")
     for msg in all_chats[today_key]:
@@ -118,42 +116,46 @@ if all_chats[today_key]:
         st.markdown(f"<div class='bot-message'>🤖 **Kaal AI**: {msg['bot']}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
-# Chat Input
+# Initialize model once
+@st.cache_resource
+def init_chat(history_messages):
+    model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-001")
+    return model.start_chat(history=history_messages)
+
+# Convert stored history to Gemini format
+def get_history_format():
+    messages = []
+    for msg in all_chats[today_key]:
+        messages.append({"role": "user", "parts": [msg["user"]]})
+        messages.append({"role": "model", "parts": [msg["bot"]]})
+    return messages
+
+# Get user input
 user_input = st.chat_input("Pucho apna sawaal 💬")
 
-# Chat Logic
+# Chat Process
 if user_input:
     st.markdown(f"<div class='user-message'>👤 **You**: {user_input}</div>", unsafe_allow_html=True)
 
-    history_messages = []
-    for msg in all_chats[today_key]:
-        history_messages.append({"role": "user", "parts": [msg["user"]]})
-        history_messages.append({"role": "model", "parts": [msg["bot"]]})
+    history_messages = get_history_format()
 
     if "chat_session" not in st.session_state:
-        model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-001")
-        st.session_state.chat_session = model.start_chat(history=history_messages)
+        st.session_state.chat_session = init_chat(history_messages)
 
     try:
-        # Typing animation
         st.markdown("<div class='typing-indicator'>🤖 **Kaal AI is typing...**</div>", unsafe_allow_html=True)
         time.sleep(1)
 
-        # Get AI response
-        chat = st.session_state.chat_session
-        ai_response = chat.send_message(user_input).text
+        # Get AI Response
+        ai_response = st.session_state.chat_session.send_message(user_input).text
 
-        # Show response
         st.markdown(f"<div class='bot-message'>🤖 **Kaal AI**: {ai_response}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
-        # Save
+        # Save chat
         all_chats[today_key].append({"user": user_input, "bot": ai_response})
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(all_chats, f, indent=2, ensure_ascii=False)
-
-        # Refresh to show chat
-        st.rerun()
 
     except Exception as e:
         st.error(f"⚠️ Error: {e}")
