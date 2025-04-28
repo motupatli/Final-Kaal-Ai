@@ -5,7 +5,6 @@ import os
 import uuid
 from datetime import datetime
 import time
-import speech_recognition as sr
 
 # Page Config
 st.set_page_config(page_title="Kaal AI - India's Best", page_icon="🧠", layout="wide")
@@ -123,31 +122,13 @@ if all_chats[today_key]:
 # Chat Input
 user_input = st.chat_input("Type your question 💬")
 
-# Add Voice Input Button
-st.write("Or click below to speak 👇")
-
-if st.button("🎤 Speak Now"):
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.write("Listening...")
-        audio = recognizer.listen(source)
-    try:
-        user_input = recognizer.recognize_google(audio)
-        st.write(f"You said: {user_input}")
-    except sr.UnknownValueError:
-        st.error("Sorry, I couldn't understand your speech.")
-        user_input = ""
-    except sr.RequestError:
-        st.error("Sorry, there was an error with the speech recognition service.")
-        user_input = ""
-
 # Chat Logic
 if user_input:
     st.markdown(f"<div class='user-message'>👤 **You**: {user_input}</div>", unsafe_allow_html=True)
 
     history_messages = []
     for msg in all_chats[today_key]:
-        history_messages.append({"role": "user", "parts": [msg["user"]]}))
+        history_messages.append({"role": "user", "parts": [msg["user"]]})
         history_messages.append({"role": "model", "parts": [msg["bot"]]})
 
     if "chat_session" not in st.session_state:
