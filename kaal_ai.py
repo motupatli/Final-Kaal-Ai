@@ -5,6 +5,8 @@ import os
 import uuid
 from datetime import datetime
 import time
+import speech_recognition as sr
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 
 # Page Config
 st.set_page_config(page_title="Kaal AI - India's Best", page_icon="🧠", layout="wide")
@@ -119,10 +121,27 @@ if all_chats[today_key]:
         st.markdown(f"<div class='bot-message'>🤖 **Kaal AI**: {msg['bot']}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
-# Chat Input
-user_input = st.chat_input("Type your question 💬")
+# Function to record voice and return as text
+def voice_input():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        st.info("🎙️ Say something!")
+        audio = recognizer.listen(source)
+        try:
+            text = recognizer.recognize_google(audio)
+            st.success(f"🎤 You said: {text}")
+            return text
+        except sr.UnknownValueError:
+            st.error("Sorry, I could not understand the audio.")
+        except sr.RequestError:
+            st.error("Could not request results from Google Speech Recognition service.")
+    return None
 
-# Chat Logic
+# Voice Input Button
+if st.button("🎤 Voice Input"):
+    user_input = voice_input()
+
+# If there's text input from user or voice
 if user_input:
     st.markdown(f"<div class='user-message'>👤 **You**: {user_input}</div>", unsafe_allow_html=True)
 
