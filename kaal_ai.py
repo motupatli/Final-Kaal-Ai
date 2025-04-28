@@ -5,8 +5,7 @@ import os
 import uuid
 from datetime import datetime
 import time
-import speech_recognition as sr
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
+import speech_recognition as sr  # For voice recognition
 
 # Page Config
 st.set_page_config(page_title="Kaal AI - India's Best", page_icon="🧠", layout="wide")
@@ -95,12 +94,9 @@ with st.sidebar:
     st.header("📅 Past Conversations")
 
     if st.button("🆕 Start New Chat"):
-        st.session_state.pop("chat_session", None)
-        all_chats[today_key] = []
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(all_chats, f, indent=2, ensure_ascii=False)
+        st.session_state.pop("chat_session", None)  # Just reset the chat session
         st.success("✨ New chat started!")
-        st.rerun()
+        st.rerun()  # Rerun the app to refresh the chat
 
     for date in sorted(all_chats.keys(), reverse=True):
         with st.expander(date):
@@ -121,33 +117,38 @@ if all_chats[today_key]:
         st.markdown(f"<div class='bot-message'>🤖 **Kaal AI**: {msg['bot']}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
-# Function to record voice and return as text
-def voice_input():
+# Add a button for voice input
+st.subheader("🎙️ Speak your question")
+
+def listen_for_audio():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
-        st.info("🎙️ Say something!")
+        st.info("🎤 Listening for your voice input...")
         audio = recognizer.listen(source)
         try:
-            text = recognizer.recognize_google(audio)
-            st.success(f"🎤 You said: {text}")
-            return text
+            query = recognizer.recognize_google(audio)
+            st.info(f"🎤 You said: {query}")
+            return query
         except sr.UnknownValueError:
-            st.error("Sorry, I could not understand the audio.")
+            st.error("❌ Sorry, I couldn't understand that. Please try again.")
         except sr.RequestError:
-            st.error("Could not request results from Google Speech Recognition service.")
-    return None
+            st.error("⚠️ Network error. Please try again later.")
+        return None
 
-# Voice Input Button
-if st.button("🎤 Voice Input"):
-    user_input = voice_input()
+if st.button("🗣️ Click to Speak"):
+    user_input = listen_for_audio()
 
-# If there's text input from user or voice
+else:
+    # Chat Input
+    user_input = st.chat_input("Type your question 💬")
+
+# Chat Logic
 if user_input:
     st.markdown(f"<div class='user-message'>👤 **You**: {user_input}</div>", unsafe_allow_html=True)
 
     history_messages = []
     for msg in all_chats[today_key]:
-        history_messages.append({"role": "user", "parts": [msg["user"]]})
+        history_messages.append({"role": "user", "parts": [msg["user"]]}))
         history_messages.append({"role": "model", "parts": [msg["bot"]]})
 
     if "chat_session" not in st.session_state:
@@ -167,12 +168,12 @@ if user_input:
         st.markdown(f"<div class='bot-message'>🤖 **Kaal AI**: {ai_response}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
-        # Save
+        # Save chat history
         all_chats[today_key].append({"user": user_input, "bot": ai_response})
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(all_chats, f, indent=2, ensure_ascii=False)
 
-        st.rerun()
+        st.rerun()  # Refresh the app to show new chat
 
     except Exception as e:
         st.error(f"⚠️ Error: {e}")
