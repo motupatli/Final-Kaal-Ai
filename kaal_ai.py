@@ -93,22 +93,19 @@ with st.sidebar:
     st.header("📅 Past Conversations")
 
     if st.button("🆕 Start New Chat"):
-        st.session_state.pop("chat_session", None)
-        all_chats[today_key] = []
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(all_chats, f, indent=2, ensure_ascii=False)
+        st.session_state.pop("chat_session", None)  # Just reset the chat session
         st.success("✨ New chat started!")
-        st.rerun()
+        st.rerun()  # Rerun the app to refresh the chat
 
     for date in sorted(all_chats.keys(), reverse=True):
         with st.expander(date):
             for msg in all_chats[date]:
-                st.markdown(f"👤 **You**: {msg['user']}")
-                st.markdown(f"🤖 **Kaal AI**: {msg['bot']}")
+                st.markdown(f"👤 You: {msg['user']}")
+                st.markdown(f"🤖 Kaal AI: {msg['bot']}")
                 st.markdown("---")
 
 # Main UI
-st.title("🤖 Kaal AI - Gemini Trained Interface")
+st.title("🤖 Kaal AI - Made By Aryan Jindal")
 st.markdown("🧠 Powered by Google's Gemini AI – developed for futuristic Bharat 🇮🇳")
 
 # Show Today’s Chat
@@ -148,12 +145,12 @@ if user_input:
         st.markdown(f"<div class='bot-message'>🤖 **Kaal AI**: {ai_response}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
-        # Save
+        # Save chat history
         all_chats[today_key].append({"user": user_input, "bot": ai_response})
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(all_chats, f, indent=2, ensure_ascii=False)
 
-        st.rerun()
+        st.rerun()  # Refresh the app to show new chat
 
     except Exception as e:
         st.error(f"⚠️ Error: {e}")
