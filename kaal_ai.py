@@ -5,6 +5,7 @@ import os
 import uuid
 from datetime import datetime
 import time
+import speech_recognition as sr
 
 # Page Config
 st.set_page_config(page_title="Kaal AI - India's Best", page_icon="🧠", layout="wide")
@@ -93,19 +94,22 @@ with st.sidebar:
     st.header("📅 Past Conversations")
 
     if st.button("🆕 Start New Chat"):
-        st.session_state.pop("chat_session", None)  # Just reset the chat session
+        st.session_state.pop("chat_session", None)
+        all_chats[today_key] = []
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(all_chats, f, indent=2, ensure_ascii=False)
         st.success("✨ New chat started!")
-        st.rerun()  # Rerun the app to refresh the chat
+        st.rerun()
 
     for date in sorted(all_chats.keys(), reverse=True):
         with st.expander(date):
             for msg in all_chats[date]:
-                st.markdown(f"👤 You: {msg['user']}")
-                st.markdown(f"🤖 Kaal AI: {msg['bot']}")
+                st.markdown(f"👤 **You**: {msg['user']}")
+                st.markdown(f"🤖 **Kaal AI**: {msg['bot']}")
                 st.markdown("---")
 
 # Main UI
-st.title("🤖 Kaal AI - Made By Aryan Jindal")
+st.title("🤖 Kaal AI - Gemini Trained Interface")
 st.markdown("🧠 Powered by Google's Gemini AI – developed for futuristic Bharat 🇮🇳")
 
 # Show Today’s Chat
@@ -119,13 +123,31 @@ if all_chats[today_key]:
 # Chat Input
 user_input = st.chat_input("Type your question 💬")
 
+# Add Voice Input Button
+st.write("Or click below to speak 👇")
+
+if st.button("🎤 Speak Now"):
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        st.write("Listening...")
+        audio = recognizer.listen(source)
+    try:
+        user_input = recognizer.recognize_google(audio)
+        st.write(f"You said: {user_input}")
+    except sr.UnknownValueError:
+        st.error("Sorry, I couldn't understand your speech.")
+        user_input = ""
+    except sr.RequestError:
+        st.error("Sorry, there was an error with the speech recognition service.")
+        user_input = ""
+
 # Chat Logic
 if user_input:
     st.markdown(f"<div class='user-message'>👤 **You**: {user_input}</div>", unsafe_allow_html=True)
 
     history_messages = []
     for msg in all_chats[today_key]:
-        history_messages.append({"role": "user", "parts": [msg["user"]]})
+        history_messages.append({"role": "user", "parts": [msg["user"]]}))
         history_messages.append({"role": "model", "parts": [msg["bot"]]})
 
     if "chat_session" not in st.session_state:
@@ -145,12 +167,12 @@ if user_input:
         st.markdown(f"<div class='bot-message'>🤖 **Kaal AI**: {ai_response}</div>", unsafe_allow_html=True)
         st.markdown("---")
 
-        # Save chat history
+        # Save
         all_chats[today_key].append({"user": user_input, "bot": ai_response})
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(all_chats, f, indent=2, ensure_ascii=False)
 
-        st.rerun()  # Refresh the app to show new chat
+        st.rerun()
 
     except Exception as e:
         st.error(f"⚠️ Error: {e}")
